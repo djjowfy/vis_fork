@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.21.0
- * @date    2017-10-12
+ * @date    2017-11-14
  *
  * @license
  * Copyright (C) 2011-2017 Almende B.V, http://almende.com
@@ -34601,7 +34601,7 @@ Graph3d.DEFAULTS = {
   yCenter: '50%',
 
   style: Graph3d.STYLE.DOT,
-  tooltip: false,
+  tooltip: true,
 
   tooltipStyle: {
     content: {
@@ -34887,6 +34887,7 @@ Graph3d.prototype.getDataPoints = function (data) {
     point.x = data[i][this.colX] || 0;
     point.y = data[i][this.colY] || 0;
     point.z = data[i][this.colZ] || 0;
+    point.color = data[i][this.color] || 0;
     point.data = data[i];
 
     if (this.colValue !== undefined) {
@@ -34994,6 +34995,7 @@ Graph3d.prototype.create = function () {
   this.frame.canvas = document.createElement('canvas');
   this.frame.canvas.style.position = 'relative';
   this.frame.appendChild(this.frame.canvas);
+
   //if (!this.frame.canvas.getContext) {
   {
     var noCanvas = document.createElement('DIV');
@@ -35857,6 +35859,9 @@ Graph3d.prototype._redrawBar = function (ctx, point, xWidth, yWidth, color, bord
   var me = this;
   var point3d = point.point;
   var zMin = this.zRange.min;
+  if (point3d.mini) {
+    xWidth = xWidth / 2;
+  }
   var top = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, point3d.z) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, point3d.z) }];
   var bottom = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, zMin) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, zMin) }];
 
@@ -35968,8 +35973,8 @@ Graph3d.prototype._drawCircle = function (ctx, point, color, borderColor, size) 
 Graph3d.prototype._getColorsRegular = function (point) {
   // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
   var hue = (1 - (point.point.z - this.zRange.min) * this.scale.z / this.verticalRatio) * 240;
-  var color = this._hsv2rgb(hue, 1, 1);
-  var borderColor = this._hsv2rgb(hue, 1, 0.8);
+  var color = this._hsv2rgb(point.point.color, 1, 1);
+  var borderColor = this._hsv2rgb(point.point.color, 1, 0.8);
 
   return {
     fill: color,
@@ -36080,7 +36085,6 @@ Graph3d.prototype._redrawBarColorGraphPoint = function (ctx, point) {
   var xWidth = this.xBarWidth / 2;
   var yWidth = this.yBarWidth / 2;
   var colors = this._getColorsColor(point);
-
   this._redrawBar(ctx, point, xWidth, yWidth, colors.fill, colors.border);
 };
 
@@ -37168,6 +37172,8 @@ DataGroup.prototype.initializeData = function (graph3d, rawData, style) {
   this.colX = 'x';
   this.colY = 'y';
   this.colZ = 'z';
+  this.colName = 'name';
+  this.colMini = 'mini';
 
   var withBars = graph3d.hasBars(style);
 
@@ -37418,6 +37424,8 @@ DataGroup.prototype.getDataPoints = function (data) {
     point.x = data[i][this.colX] || 0;
     point.y = data[i][this.colY] || 0;
     point.z = data[i][this.colZ] || 0;
+    point.name = data[i][this.colName] || 'undefined';
+    point.mini = data[i][this.colMini] || false;
     point.data = data[i];
 
     if (this.colValue !== undefined) {
